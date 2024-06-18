@@ -17,6 +17,15 @@ shopt -s checkwinsize
 # fuzzyfinder fzf
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
 # GENERAL ALIASES
 alias ls='ls --group-directories-first --color'
 alias sl='ls --group-directories-first --color'
@@ -52,4 +61,4 @@ alias gc="git commit"
 alias python="python3"
 
 # Source machine-specific configurations
-[ -f "$HOME/.bashrc_local" ] && source "$HOME/.bashrc_local"
+[ -f "${HOME}/.bashrc_local" ] && source "${HOME}/.bashrc_local"
