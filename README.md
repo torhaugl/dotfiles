@@ -21,3 +21,9 @@ sudo add-apt-repository ppa:neovim-ppa/unstable -y
 sudo apt install neovim
 ```
 
+
+For tmux, tmux package manager (tpm) is needed. To install it into the 
+default location,
+```sh
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
