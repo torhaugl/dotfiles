@@ -71,10 +71,11 @@ vim.opt.scrolloff = 10
 
 -- Shift for tabs (4 spaces)
 vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
+vim.opt.softtabstop = 0
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smartindent = true
+vim.opt.smarttab = false
 
 -- Warning at 80 characters wide column
 vim.opt.colorcolumn = '80'
