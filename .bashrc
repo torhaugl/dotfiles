@@ -33,20 +33,9 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
-cdls() {
-        local dir="$1"
-        local dir="${dir:=$HOME}"
-        if [[ -d "$dir" ]]; then
-                cd "$dir" >/dev/null; ls --color=auto
-        else
-                echo "bash: cdls: $dir: Directory not found"
-        fi
-}
-alias cd=cdls
-
 # Config
 alias cfb="vim ~/.bashrc && source ~/.bashrc"
-alias cfv="vim ~/.vimrc"
+alias cfv="vim ~/.config/nvim/init.lua"
 
 alias ssh="ssh -o LogLevel=quiet"
 
