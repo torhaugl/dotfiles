@@ -127,6 +127,85 @@ vim.keymap.set('n', '<C-u>', '<C-u>zz')
 vim.keymap.set('n', 'n', 'nzzzv')
 vim.keymap.set('n', 'N', 'Nzzzv')
 
+-- Terminal
+vim.api.nvim_create_autocmd('TermOpen', {
+  desc = 'Disable numbering in term',
+  group = vim.api.nvim_create_augroup('custom-term-open', { clear = true }),
+  callback = function()
+    vim.opt.number = false
+  end,
+})
+vim.keymap.set('n', '<space>xl', '<cmd>source %<CR>')
+vim.keymap.set('v', '<space>xl', ':lua<CR>')
+
+local job_id = 0
+vim.keymap.set('n', '<space>st', function()
+  vim.cmd.vnew()
+  vim.cmd.term()
+  vim.cmd.wincmd 'J'
+  vim.api.nvim_win_set_height(0, 15)
+  vim.cmd.normal 'G'
+  job_id = vim.bo.channel
+end)
+
+-- https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/
+-- Return the visually selected text as an array with an entry for each line
+-- @return string[]|nil lines The selected text as an array of lines.
+local function get_visual_selection_text()
+  local _, srow, scol = unpack(vim.fn.getpos 'v')
+  local _, erow, ecol = unpack(vim.fn.getpos '.')
+
+  -- visual line mode
+  if vim.fn.mode() == 'V' then
+    if srow > erow then
+      return vim.api.nvim_buf_get_lines(0, erow - 1, srow, true)
+    else
+      return vim.api.nvim_buf_get_lines(0, srow - 1, erow, true)
+    end
+  end
+
+  -- regular visual mode
+  if vim.fn.mode() == 'v' then
+    if srow < erow or (srow == erow and scol <= ecol) then
+      return vim.api.nvim_buf_get_text(0, srow - 1, scol - 1, erow - 1, ecol, {})
+    else
+      return vim.api.nvim_buf_get_text(0, erow - 1, ecol - 1, srow - 1, scol, {})
+    end
+  end
+
+  -- visual block mode
+  if vim.fn.mode() == '\22' then
+    local lines = {}
+    if srow > erow then
+      srow, erow = erow, srow
+    end
+    if scol > ecol then
+      scol, ecol = ecol, scol
+    end
+    for i = srow, erow do
+      table.insert(lines, vim.api.nvim_buf_get_text(0, i - 1, math.min(scol - 1, ecol), i - 1, math.max(scol - 1, ecol), {})[1])
+    end
+    return lines
+  end
+end
+
+-- Send visual-mode text to term
+vim.keymap.set('v', '<S-CR>', function()
+  local vtext = get_visual_selection_text()
+  local all_str = ''
+  for _, v in pairs(vtext) do
+    all_str = all_str .. v
+  end
+  vim.fn.chansend(job_id, { all_str .. '\r\n' })
+end)
+
+-- Send current line to term
+vim.keymap.set('n', '<S-CR>', function()
+  local all_str = vim.api.nvim_get_current_line()
+  vim.fn.chansend(job_id, { all_str .. '\r\n' })
+  vim.cmd.normal 'j'
+end)
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
