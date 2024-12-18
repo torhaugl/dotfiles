@@ -46,6 +46,7 @@ alias r='. ranger'
 alias gs="git status"
 alias ga="git add"
 alias gc="git commit"
+alias gitgraph="git log --graph --abbrev-commit --decorate --all --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white) - %an%C(reset)%C(auto)%d%C(reset)'"
 
 alias python="python3"
 
