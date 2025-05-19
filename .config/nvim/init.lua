@@ -1,3 +1,21 @@
+local client = vim.lsp.start_client {
+  name = 'nt_pref_ls',
+  cmd = { 'nt-pref-ls' },
+}
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'nt',
+  callback = function()
+    vim.lsp.buf_attach_client(0, client)
+  end,
+})
+
+vim.api.nvim_create_autocmd('CursorHold', {
+  callback = function()
+    vim.diagnostic.open_float(nil, { focusable = false })
+  end,
+})
+
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -649,7 +667,6 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
-
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -995,10 +1012,13 @@ require('lazy').setup({
   },
 })
 
--- Set syntax for .bashrc_local
+-- Set syntax for .bashrc_local and .nt files
 vim.filetype.add {
   filename = {
     ['.bashrc_local'] = 'bash',
+  },
+  extension = {
+    nt = 'nt',
   },
 }
 
