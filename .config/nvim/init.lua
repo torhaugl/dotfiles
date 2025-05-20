@@ -1,21 +1,3 @@
-local client = vim.lsp.start_client {
-  name = 'nt_pref_ls',
-  cmd = { 'nt-pref-ls' },
-}
-
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'nt',
-  callback = function()
-    vim.lsp.buf_attach_client(0, client)
-  end,
-})
-
-vim.api.nvim_create_autocmd('CursorHold', {
-  callback = function()
-    vim.diagnostic.open_float(nil, { focusable = false })
-  end,
-})
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -1023,6 +1005,25 @@ vim.filetype.add {
 }
 
 vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
+
+-- Toggle virtual hints and lines
+vim.keymap.set('n', '<leader>th', function()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = 0 })
+end, { desc = '[T]oggle Inlay [H]ints' })
+
+vim.keymap.set('n', '<leader>tv', function()
+  local current = vim.diagnostic.config().virtual_lines
+  vim.diagnostic.config { virtual_lines = not current }
+end, { desc = '[T]oggle [V]irtual Lines' })
+
+vim.lsp.enable { 'nt_pref_ls' }
+
+-- Show diagnostics when holding cursor for a second.
+-- vim.api.nvim_create_autocmd('CursorHold', {
+--   callback = function()
+--     vim.diagnostic.open_float(nil, { focusable = false })
+--   end,
+-- })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
