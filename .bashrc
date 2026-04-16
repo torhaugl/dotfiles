@@ -29,9 +29,9 @@ fi
 # GENERAL ALIASES
 alias ls='ls --group-directories-first --color'
 alias sl='ls --group-directories-first --color'
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
+alias ll='ls -lFh --group-directories-first --color'
+alias la='ls -A --group-directories-first --color'
+alias l='ls -CF --group-directories-first --color'
 
 # Config
 alias cfb="vim ~/.bashrc && source ~/.bashrc"
@@ -52,3 +52,14 @@ alias python="python3"
 
 # Source machine-specific configurations
 [ -f "${HOME}/.bashrc_local" ] && source "${HOME}/.bashrc_local"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+export TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD="true"
+export PATH="$HOME/.julia/bin:$PATH"
+export PATH="$HOME/opt/Fiji.app:$PATH"
+
+alias path="echo \"${PATH//:/$'\n'}\""
+. "$HOME/.cargo/env"
