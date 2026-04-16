@@ -27,3 +27,10 @@ default location,
 ```sh
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ```
+
+For Gnome,
+```sh
+gsettings set org.gnome.shell.extensions.dash-to-dock hot-keys false
+for i in {1..9}; do gsettings set org.gnome.shell.keybindings switch-to-application-${i} '[]'; done
+for i in {1..9}; do gsettings set "org.gnome.desktop.wm.keybindings" "switch-to-workspace-$i" "['<Super>$i']" ; done
+```
