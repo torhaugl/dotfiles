@@ -105,14 +105,12 @@ vim.keymap.set('n', '<leader>tl', function()
   vim.diagnostic.config { virtual_lines = new_config }
 end, { desc = '[T]oggle Diagnostic [L]ines' })
 
-local job_id = 0
 local function start_terminal()
   vim.cmd.vnew()
   vim.cmd.term()
   vim.cmd.wincmd 'J'
   vim.api.nvim_win_set_height(0, 15)
   vim.cmd.normal 'G'
-  job_id = vim.bo.channel
 end
 vim.keymap.set('n', '<leader>st', start_terminal, { desc = '[S]tart [T]erminal' })
 
@@ -123,7 +121,7 @@ vim.cmd.packadd "nvim.undotree"
 require("undotree")
 
 -- [Colorscheme]. See also `:Telescope colorscheme`.
-vim.pack.add {'https://github.com/folke/tokyonight.nvim'}
+vim.pack.add { 'https://github.com/folke/tokyonight.nvim' }
 vim.cmd.colorscheme 'tokyonight-night'
 
 -- [tree-sitter]
@@ -196,49 +194,20 @@ vim.api.nvim_create_autocmd('LspAttach', {
       mode = mode or 'n'
       vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
     end
+    local builtin = require('telescope.builtin')
 
-    -- Jump to the definition of the word under your cursor.
-    --  This is where a variable was first declared, or where a function is defined, etc.
-    --  To jump back, press <C-t>.
-    map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-
-    -- Find references for the word under your cursor.
-    map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-
-    -- Jump to the implementation of the word under your cursor.
-    --  Useful when your language has ways of declaring types without an actual implementation.
-    map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-
-    -- Jump to the type of the word under your cursor.
-    --  Useful when you're not sure what type a variable is and you want to see
-    --  the definition of its *type*, not where it was *defined*.
-    map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-
-    -- Fuzzy find all the symbols in your current document.
-    --  Symbols are things like variables, functions, types, etc.
-    map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-
-    -- Fuzzy find all the symbols in your current workspace.
-    --  Similar to document symbols, except searches over your entire project.
-    map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-    -- Rename the variable under your cursor.
-    --  Most Language Servers support renaming across files, etc.
+    map('gd', builtin.lsp_definitions, '[G]oto [D]efinition')
+    map('gr', builtin.lsp_references, '[G]oto [R]eferences')
+    map('gI', builtin.lsp_implementations, '[G]oto [I]mplementation')
+    map('<leader>D', builtin.lsp_type_definitions, 'Type [D]efinition')
+    map('<leader>ds', builtin.lsp_document_symbols, '[D]ocument [S]ymbols')
+    map('<leader>ws', builtin.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
     map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-
-    -- Execute a code action, usually your cursor needs to be on top of an error
-    -- or a suggestion from your LSP for this to activate.
     map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
-
-    -- WARN: This is not Goto Definition, this is Goto Declaration.
-    --  For example, in C this would take you to the header.
     map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
     -- The following two autocommands are used to highlight references of the
     -- word under your cursor when your cursor rests there for a little while.
-    --    See `:help CursorHold` for information about when this is executed
-    --
-    -- When you move your cursor, the highlights will be cleared (the second autocommand).
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
       local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
@@ -248,6 +217,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
         callback = vim.lsp.buf.document_highlight,
       })
 
+    -- When you move your cursor, the highlights will be cleared
       vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
         buffer = event.buf,
         group = highlight_augroup,
@@ -333,64 +303,6 @@ end, { desc = '[s]earch [c]onfig files' })
 -- [which-key] When tapping <leader>, show all possible keymaps
 vim.pack.add { 'https://github.com/folke/which-key.nvim' }
 require("which-key").setup({})
-
--- [Send to REPL]
--- https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/
--- Return the visually selected text as an array with an entry for each line
--- @return string[]|nil lines The selected text as an array of lines.
--- Used to send text to REPL (e.g. Python and Julia)
-local function get_visual_selection_text()
-  local _, srow, scol = unpack(vim.fn.getpos 'v')
-  local _, erow, ecol = unpack(vim.fn.getpos '.')
-
-  -- visual line mode
-  if vim.fn.mode() == 'V' then
-    if srow > erow then
-      return vim.api.nvim_buf_get_lines(0, erow - 1, srow, true)
-    else
-      return vim.api.nvim_buf_get_lines(0, srow - 1, erow, true)
-    end
-  end
-
-  -- regular visual mode
-  if vim.fn.mode() == 'v' then
-    if srow < erow or (srow == erow and scol <= ecol) then
-      return vim.api.nvim_buf_get_text(0, srow - 1, scol - 1, erow - 1, ecol, {})
-    else
-      return vim.api.nvim_buf_get_text(0, erow - 1, ecol - 1, srow - 1, scol, {})
-    end
-  end
-
-  -- visual block mode
-  if vim.fn.mode() == '\22' then
-    local lines = {}
-    if srow > erow then
-      srow, erow = erow, srow
-    end
-    if scol > ecol then
-      scol, ecol = ecol, scol
-    end
-    for i = srow, erow do
-      table.insert(lines, vim.api.nvim_buf_get_text(0, i - 1, math.min(scol - 1, ecol), i - 1, math.max(scol - 1, ecol), {})[1])
-    end
-    return lines
-  end
-end
-
-vim.keymap.set('v', '<S-CR>', function()
-  local vtext = get_visual_selection_text()
-  local all_str = ''
-  for _, v in pairs(vtext) do
-    all_str = all_str .. v
-  end
-  vim.fn.chansend(job_id, { all_str .. '\r\n' })
-end, { desc = 'Send visual-mode text to terminal' })
-
-vim.keymap.set('n', '<S-CR>', function()
-  local all_str = vim.api.nvim_get_current_line()
-  vim.fn.chansend(job_id, { all_str .. '\r\n' })
-  vim.cmd.normal 'j'
-end, { desc = 'Send current line to terminal' })
 
 -- See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
