@@ -57,8 +57,8 @@ vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Improved scrolling (C-d)' })
 vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Improved scrolling (C-u)' })
 vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Improved search (n)' })
 vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Improved search (N)' })
-vim.keymap.set('n', '<space>xl', '<cmd>source %<CR>', { desc = 'E[X]ecute [L]ua (source)' })
-vim.keymap.set('v', '<space>xl', ':lua<CR>', { desc = 'E[X]ectue [L]ua' })
+vim.keymap.set('n', '<leader>xl', '<cmd>source %<CR>', { desc = 'E[X]ecute [L]ua (source)' })
+vim.keymap.set('v', '<leader>xl', ':lua<CR>', { desc = 'E[X]ectue [L]ua' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
