@@ -1,15 +1,13 @@
 -- neovim 0.12
---  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
+
+-- [[ Global options ]]
+--  NOTE: <leader> must be set before plugins are loaded
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
--- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
 
 -- [[ Setting options ]]
--- See `:help vim.opt`
--- For more options, you can see `:help option-list`
-
+-- See `:help vim.opt` and `:help option-list`
 vim.opt.number = true
 vim.opt.relativenumber = false
 vim.opt.breakindent = true
@@ -28,7 +26,6 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.opt.inccommand = 'split'
 vim.opt.scrolloff = 10
 vim.opt.colorcolumn = '80'
-
 -- Shift for tabs (4 spaces)
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 0
@@ -36,40 +33,30 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.smarttab = false
-
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
-
 -- Sync clipboard between OS and Neovim.
-vim.schedule(function()
-  vim.opt.clipboard = 'unnamedplus'
-end)
+vim.opt.clipboard = 'unnamedplus'
 
 -- [[ Basic Keymaps ]]
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Stop search highlighting' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
-vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'File viewer' })
+vim.keymap.set('n', '<leader>pv', '<cmd>Oil<Cr>', { desc = 'File viewer' })
 vim.keymap.set('n', 'Q', '<nop>', { desc = 'Disable Q (Ex mode)' })
-
 vim.keymap.set('n', '<leader>ct', ':% !column -t <ENTER>', { desc = 'Column tabs' })
 vim.keymap.set('v', '<leader>ct', ':!column -t <ENTER>', { desc = 'Column tabs' })
-
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv", { desc = 'Move selected line down' })
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv", { desc = 'Move selected line up' })
 vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Remove endline from current line' })
-
 vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Improved scrolling (C-d)' })
 vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Improved scrolling (C-u)' })
 vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Improved search (n)' })
 vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Improved search (N)' })
-
 vim.keymap.set('n', '<space>xl', '<cmd>source %<CR>', { desc = 'E[X]ecute [L]ua (source)' })
 vim.keymap.set('v', '<space>xl', ':lua<CR>', { desc = 'E[X]ectue [L]ua' })
 
@@ -119,109 +106,43 @@ vim.keymap.set('n', '<leader>tl', function()
 end, { desc = '[T]oggle Diagnostic [L]ines' })
 
 local job_id = 0
-vim.keymap.set('n', '<leader>st', function()
+local function start_terminal()
   vim.cmd.vnew()
   vim.cmd.term()
   vim.cmd.wincmd 'J'
   vim.api.nvim_win_set_height(0, 15)
   vim.cmd.normal 'G'
   job_id = vim.bo.channel
-end, { desc = '[S]tart [T]erminal' })
-
--- https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/
--- Return the visually selected text as an array with an entry for each line
--- @return string[]|nil lines The selected text as an array of lines.
--- Used to send text to REPL (e.g. Python and Julia)
-local function get_visual_selection_text()
-  local _, srow, scol = unpack(vim.fn.getpos 'v')
-  local _, erow, ecol = unpack(vim.fn.getpos '.')
-
-  -- visual line mode
-  if vim.fn.mode() == 'V' then
-    if srow > erow then
-      return vim.api.nvim_buf_get_lines(0, erow - 1, srow, true)
-    else
-      return vim.api.nvim_buf_get_lines(0, srow - 1, erow, true)
-    end
-  end
-
-  -- regular visual mode
-  if vim.fn.mode() == 'v' then
-    if srow < erow or (srow == erow and scol <= ecol) then
-      return vim.api.nvim_buf_get_text(0, srow - 1, scol - 1, erow - 1, ecol, {})
-    else
-      return vim.api.nvim_buf_get_text(0, erow - 1, ecol - 1, srow - 1, scol, {})
-    end
-  end
-
-  -- visual block mode
-  if vim.fn.mode() == '\22' then
-    local lines = {}
-    if srow > erow then
-      srow, erow = erow, srow
-    end
-    if scol > ecol then
-      scol, ecol = ecol, scol
-    end
-    for i = srow, erow do
-      table.insert(lines, vim.api.nvim_buf_get_text(0, i - 1, math.min(scol - 1, ecol), i - 1, math.max(scol - 1, ecol), {})[1])
-    end
-    return lines
-  end
 end
-
-vim.keymap.set('v', '<S-CR>', function()
-  local vtext = get_visual_selection_text()
-  local all_str = ''
-  for _, v in pairs(vtext) do
-    all_str = all_str .. v
-  end
-  vim.fn.chansend(job_id, { all_str .. '\r\n' })
-end, { desc = 'Send visual-mode text to terminal' })
-
-vim.keymap.set('n', '<S-CR>', function()
-  local all_str = vim.api.nvim_get_current_line()
-  vim.fn.chansend(job_id, { all_str .. '\r\n' })
-  vim.cmd.normal 'j'
-end, { desc = 'Send current line to terminal' })
+vim.keymap.set('n', '<leader>st', start_terminal, { desc = '[S]tart [T]erminal' })
 
 -- [[ Configure and install plugins ]]
 
--- Native
+-- [Undotree]
 vim.cmd.packadd "nvim.undotree"
 require("undotree")
 
--- External
-vim.pack.add {
-  -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  'https://github.com/folke/tokyonight.nvim',
-  -- Adds git related signs to the gutter, as well as utilities for managing changes
-  'https://github.com/lewis6991/gitsigns.nvim',
-  'https://github.com/neovim/nvim-lspconfig',
-  'https://github.com/Bilal2453/luvit-meta',
-
-  -- Highlight todo, notes, etc in comments
-  'https://github.com/nvim-lua/plenary.nvim', -- is a dependency: todo-comments
-  'https://github.com/folke/todo-comments.nvim',
-
-  -- Detect tabstop and shiftwidth automatically
--- 'https://github.com/tpope/vim-sleuth', 
---
-  -- File explorer
-  'https://github.com/stevearc/oil.nvim',
-
-  -- Telescope
-  'https://github.com/nvim-lua/plenary.nvim',
-  -- 'https://github.com/nvim-telescope/telescope-fzf-native.nvim',
-  'https://github.com/nvim-telescope/telescope-ui-select.nvim',
-  'https://github.com/nvim-telescope/telescope.nvim',
-  'https://github.com/folke/which-key.nvim',
-}
-
-require("todo-comments").setup({signs=false})
-
+-- [Colorscheme]. See also `:Telescope colorscheme`.
+vim.pack.add {'https://github.com/folke/tokyonight.nvim'}
 vim.cmd.colorscheme 'tokyonight-night'
 
+-- [tree-sitter]
+-- vim.pack.add { 'https://github.com/nvim-treesitter/nvim-treesitter' }
+-- require("nvim-treesitter.install").update("all") -- :TSUpdate all
+-- require("nvim-treesitter.configs").setup({
+--   auto_install = true, -- autoinstall languages that are not installed yet
+-- })
+
+-- [todo-comments] Highlight todo, notes, etc in comments
+vim.pack.add {
+  'https://github.com/nvim-lua/plenary.nvim',
+  'https://github.com/folke/todo-comments.nvim',
+}
+require("todo-comments").setup({signs=false})
+
+-- [gitsigns] Adds git related signs to the gutter, as well as utilities for
+-- managing changes
+vim.pack.add { 'https://github.com/lewis6991/gitsigns.nvim' }
 require('gitsigns').setup {
   signs = {
     add = { text = '+' },
@@ -232,29 +153,45 @@ require('gitsigns').setup {
   },
 }
 
--- require('custom.plugins.csv')
--- require('custom.plugins.init')
--- require('custom.plugins.markview')
--- require('custom.plugins.nvim-cmp')
--- require('custom.plugins.telescope')
--- require('custom.plugins.whichkey')
-
+-- [oil] file explorer
+vim.pack.add { 'https://github.com/stevearc/oil.nvim' }
 require("oil").setup({
   default_file_explorer = true,
 })
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
-vim.lsp.enable { 'lua_ls', 'pyright', 'rust_analyzer', 'julials', 'nt_pref_ls', 'ttl_pref_ls' }
+-- [LSP] config
+vim.pack.add { 'https://github.com/neovim/nvim-lspconfig' }
+-- Disable missing global warning for "vim" in e.g. init.lua
+vim.lsp.config('lua_ls', {
+  settings = {
+    Lua = {
+      diagnostics = {
+        globals = { 'vim' },
+      },
+    },
+  },
+})
 
---  This function gets run when an LSP attaches to a particular buffer.
---    That is to say, every time a new file is opened that is associated with
---    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
---    function will be executed to configure the current buffer
+vim.lsp.enable {
+  'lua_ls', -- https://luals.github.io/#neovim-install
+  'pyright', -- npm i -g pyright
+  'rust_analyzer', -- rustup component add rust-src
+  -- 'julials',
+}
+-- vim.lsp.enable { 'nt_pref_ls', 'ttl_pref_ls' } -- Custom LSP for ontologies
+
+
+-- [Telescope]
+vim.pack.add {
+  'https://github.com/nvim-lua/plenary.nvim',
+  'https://github.com/nvim-telescope/telescope-ui-select.nvim',
+  'https://github.com/nvim-telescope/telescope.nvim',
+}
+
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
   callback = function(event)
-    -- We create a function that lets us more easily define mappings specific
-    -- for LSP related items. It sets the mode, buffer and description for us each time.
     local map = function(keys, func, desc, mode)
       mode = mode or 'n'
       vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
@@ -336,26 +273,11 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
--- Telescope is a fuzzy finder that comes with a lot of different things that
--- it can fuzzy find! It's more than just a "file finder", it can search
--- many different aspects of Neovim, your workspace, LSP, and more!
---
--- The easiest way to use Telescope, is to start by doing something like:
---  :Telescope help_tags
---
--- After running this command, a window will open up and you're able to
--- type in the prompt window. You'll see a list of `help_tags` options and
--- a corresponding preview of the help.
---
+-- [[ Configure Telescope ]]
 -- Two important keymaps to use while in Telescope are:
 --  - Insert mode: <c-/>
 --  - Normal mode: ?
 --
--- This opens a window that shows you all of the keymaps for the current
--- Telescope picker. This is really useful to discover what Telescope can
--- do as well as how to actually do it!
-
--- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
   extensions = {
@@ -408,7 +330,67 @@ vim.keymap.set('n', '<leader>sc', function()
   builtin.find_files { cwd = '~/.dotfiles/', hidden = true }
 end, { desc = '[s]earch [c]onfig files' })
 
+-- [which-key] When tapping <leader>, show all possible keymaps
+vim.pack.add { 'https://github.com/folke/which-key.nvim' }
 require("which-key").setup({})
+
+-- [Send to REPL]
+-- https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/
+-- Return the visually selected text as an array with an entry for each line
+-- @return string[]|nil lines The selected text as an array of lines.
+-- Used to send text to REPL (e.g. Python and Julia)
+local function get_visual_selection_text()
+  local _, srow, scol = unpack(vim.fn.getpos 'v')
+  local _, erow, ecol = unpack(vim.fn.getpos '.')
+
+  -- visual line mode
+  if vim.fn.mode() == 'V' then
+    if srow > erow then
+      return vim.api.nvim_buf_get_lines(0, erow - 1, srow, true)
+    else
+      return vim.api.nvim_buf_get_lines(0, srow - 1, erow, true)
+    end
+  end
+
+  -- regular visual mode
+  if vim.fn.mode() == 'v' then
+    if srow < erow or (srow == erow and scol <= ecol) then
+      return vim.api.nvim_buf_get_text(0, srow - 1, scol - 1, erow - 1, ecol, {})
+    else
+      return vim.api.nvim_buf_get_text(0, erow - 1, ecol - 1, srow - 1, scol, {})
+    end
+  end
+
+  -- visual block mode
+  if vim.fn.mode() == '\22' then
+    local lines = {}
+    if srow > erow then
+      srow, erow = erow, srow
+    end
+    if scol > ecol then
+      scol, ecol = ecol, scol
+    end
+    for i = srow, erow do
+      table.insert(lines, vim.api.nvim_buf_get_text(0, i - 1, math.min(scol - 1, ecol), i - 1, math.max(scol - 1, ecol), {})[1])
+    end
+    return lines
+  end
+end
+
+vim.keymap.set('v', '<S-CR>', function()
+  local vtext = get_visual_selection_text()
+  local all_str = ''
+  for _, v in pairs(vtext) do
+    all_str = all_str .. v
+  end
+  vim.fn.chansend(job_id, { all_str .. '\r\n' })
+end, { desc = 'Send visual-mode text to terminal' })
+
+vim.keymap.set('n', '<S-CR>', function()
+  local all_str = vim.api.nvim_get_current_line()
+  vim.fn.chansend(job_id, { all_str .. '\r\n' })
+  vim.cmd.normal 'j'
+end, { desc = 'Send current line to terminal' })
 
 -- See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
