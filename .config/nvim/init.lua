@@ -8,8 +8,10 @@ vim.g.have_nerd_font = false
 
 -- [[ Setting options ]]
 -- See `:help vim.opt` and `:help option-list`
+vim.opt.wrap = false
+vim.opt.linebreak = false
 vim.opt.number = true
-vim.opt.relativenumber = false
+vim.opt.relativenumber = true
 vim.opt.breakindent = true
 vim.opt.undofile = true
 vim.opt.signcolumn = 'yes'
@@ -99,6 +101,45 @@ vim.filetype.add {
 }
 
 -- [[ Advanced Keymaps ]]
+vim.pack.add { 'https://github.com/folke/zen-mode.nvim' }
+require('zen-mode').setup({
+  window = {
+    backdrop = 0.95, -- shade the backdrop of the Zen window. Set to 1 to keep the same as Normal
+    width = 120,
+    height = 1,
+    options = {
+      signcolumn = "no", -- disable signcolumn
+      number = false, -- disable number column
+      relativenumber = false, -- disable relative numbers
+      cursorline = false, -- disable cursorline
+      -- cursorcolumn = false, -- disable cursor column
+      -- foldcolumn = "0", -- disable fold column
+      -- list = false, -- disable whitespace characters
+    },
+  },
+})
+
+local zen_wrap_enabled = false
+local function toggle_wrap()
+  if zen_wrap_enabled then
+    vim.opt.wrap = false
+    vim.opt.linebreak = false
+    vim.opt.colorcolumn = '80'
+    vim.keymap.set('n', 'j', 'j')
+    vim.keymap.set('n', 'k', 'k')
+    vim.cmd.colorscheme 'tokyonight-night'
+  else
+    vim.opt.wrap = true
+    vim.opt.linebreak = true
+    vim.opt.colorcolumn = ''
+    vim.keymap.set('n', 'j', 'gj')
+    vim.keymap.set('n', 'k', 'gk')
+    vim.cmd.colorscheme 'tokyonight-day'
+  end
+  vim.cmd 'ZenMode'
+  zen_wrap_enabled = not zen_wrap_enabled
+end
+vim.keymap.set('n', '<leader>tw', toggle_wrap, { desc = '[T]oggle [W]rap' })
 
 vim.keymap.set('n', '<leader>tl', function()
   local new_config = not vim.diagnostic.config().virtual_lines
