@@ -36,6 +36,7 @@ alias l='ls -CF --group-directories-first --color'
 # Config
 alias cfb="vim ~/.bashrc && source ~/.bashrc"
 alias cfv="vim ~/.config/nvim/init.lua"
+alias cft="vim ~/.config/tmux/tmux.conf"
 
 alias ssh="ssh -o LogLevel=quiet"
 
